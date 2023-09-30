@@ -50,9 +50,8 @@ fn hexdump(input: File) -> Result<(), Box<dyn Error>> {
             .map(show_printable_chars)
             .collect::<Vec<u8>>();
 
-        // show_printable_chars(&mut char_string);
-
-        print!("{}", String::from_utf8(vec_bytes)?);
+        // print ascii representation
+        print!("|{}|", String::from_utf8(vec_bytes)?);
 
         // reset for next cycle
         reader.consume(reader.buffer().len());
