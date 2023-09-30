@@ -1,5 +1,6 @@
 static BUFFER_SIZE: usize = 16;
 static MIN_CHARS_PER_LINE: i32 = 51;
+static PERIOD_ASCII_CODE: u8 = 46;
 
 use std::env;
 use std::error::Error;
@@ -9,7 +10,7 @@ use std::io::{BufRead, BufReader};
 fn show_printable_chars(rch: &u8) -> u8 {
     let val = *rch;
     if val < 32 || val > 127 {
-        46
+        PERIOD_ASCII_CODE
     } else {
         val
     }
