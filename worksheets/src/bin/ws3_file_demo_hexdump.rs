@@ -1,5 +1,5 @@
 static BUFFER_SIZE: usize = 16;
-static MIN_CHARS_PER_LINE: i32 = 51;
+static MIN_CHARS_PER_LINE: i32 = 59;
 static PERIOD_ASCII_CODE: u8 = 46;
 
 use std::env;
@@ -20,20 +20,17 @@ fn hexdump(input: File) -> Result<(), Box<dyn Error>> {
     let mut address: usize = 0;
     let mut reader = BufReader::with_capacity(BUFFER_SIZE, input);
     let mut printed_chars = 0;
+    let mut total_size = 0;
 
     while reader.fill_buf()?.len() > 0 {
         print!("{:08x}: ", address);
         printed_chars += 10;
 
         for (index, ch) in reader.buffer().iter().enumerate() {
-            print!("{:02x}", ch);
-            printed_chars += 2;
-            if 1 == index % 2 {
-                print!(" ");
-                printed_chars += 1;
-            }
+            print!("{:02x} ", ch);
+            printed_chars += 3;
 
-            if 7 == index {
+            if 7 == index || 15 == index {
                 print!(" ");
                 printed_chars += 1;
             }
@@ -54,12 +51,14 @@ fn hexdump(input: File) -> Result<(), Box<dyn Error>> {
         print!("|{}|", String::from_utf8(vec_bytes)?);
 
         // reset for next cycle
+        total_size += reader.buffer().len();
         reader.consume(reader.buffer().len());
         address += BUFFER_SIZE;
         printed_chars = 0;
         println!();
     }
 
+    println!("{:08x}", total_size);
     Ok(()) // return that we're done
 }
 
