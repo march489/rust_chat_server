@@ -1,10 +1,11 @@
 fn process<T: Iterator<Item = String>>(args: &mut T) {
-    let result = args
-        .by_ref()
-        .map(|s| s.clone().parse::<i32>().unwrap())
-        .reduce(|a, b| a + b)
-        .unwrap_or(0);
-    println!("{}", result);
+    let mut result = 0;
+    // let cloned_args =
+    args.into_iter().for_each(|s| {
+        result += s.parse::<i32>().unwrap();
+    });
+
+    println!("{result}");
 }
 fn main() {
     /*
