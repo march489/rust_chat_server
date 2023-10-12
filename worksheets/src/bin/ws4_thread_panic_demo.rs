@@ -1,7 +1,8 @@
+use rand;
 use std::thread::{spawn, JoinHandle};
 use std::time::SystemTime;
 
-fn not_a_random_number() -> u8 {
+fn _not_a_random_number() -> u8 {
     let now = SystemTime::now();
     let duration = now.duration_since(SystemTime::UNIX_EPOCH).unwrap();
     let nanos: u128 = duration.as_nanos();
@@ -12,9 +13,9 @@ fn main() {
     let mut join_handles: Vec<(u8, JoinHandle<u8>)> = Vec::new();
     for thread_number in 0..4 {
         let join_handle = spawn(move || loop {
-            let num: u8 = not_a_random_number();
+            let num: u8 = rand::random::<u8>() % 10 as u8;
             eprintln!("thread {thread_number}:  {num}");
-            // let _ = 100 / num;
+            let _ = 100 / num;
             if num == 1 {
                 return thread_number;
             }
