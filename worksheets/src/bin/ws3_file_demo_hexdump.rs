@@ -23,7 +23,7 @@ fn hexdump(input: File) -> Result<(), Box<dyn Error>> {
     let mut total_size = 0;
 
     while reader.fill_buf()?.len() > 0 {
-        print!("{:08x}: ", address);
+        print!("{:08x}  ", address);
         printed_chars += 10;
 
         for (index, ch) in reader.buffer().iter().enumerate() {
@@ -41,11 +41,7 @@ fn hexdump(input: File) -> Result<(), Box<dyn Error>> {
             print!(" ");
         }
 
-        let vec_bytes: Vec<u8> = reader
-            .buffer()
-            .iter()
-            .map(show_printable_chars)
-            .collect::<Vec<u8>>();
+        let vec_bytes: Vec<u8> = reader.buffer().iter().map(show_printable_chars).collect();
 
         // print ascii representation
         print!("|{}|", String::from_utf8(vec_bytes)?);
