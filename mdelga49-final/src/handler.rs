@@ -56,6 +56,26 @@ async fn read_one(db: Db, id: i32) -> Option<Json<Post>> {
         .ok()
 }
 
+#[delete("/<id>")]
+async fn delete_one(db: Db, id: i32) -> Result<Option<()>> {
+    let affected: usize = db
+        .run(move |conn| {
+            diesel::delete(posts::table)
+                .filter(posts::id.eq(id))
+                .execute(conn)
+        })
+        .await?;
+
+    Ok((affected == 1).then(|| ()))
+}
+
+#[delete("/")]
+async fn destroy(db: Db) -> Result<()> {
+    db.run(move |conn| diesel::delete(posts::table).execute(conn))
+        .await?;
+    Ok(())
+}
+
 async fn run_migrations(rocket: Rocket<Build>) -> Rocket<Build> {
     use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
     const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
@@ -76,6 +96,9 @@ pub fn stage() -> AdHoc {
         rocket
             .attach(Db::fairing())
             .attach(AdHoc::on_ignite("Diesel Migrations", run_migrations))
-            .mount("/diesel", routes![list, create, read_one])
+            .mount(
+                "/diesel",
+                routes![list, create, read_one, delete_one, destroy],
+            )
     })
 }

@@ -5,16 +5,17 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_sync_db_pools;
 extern crate diesel;
-mod schema;
 
-mod diesel_sqlite;
+mod handler;
+mod schema;
+mod tests;
 
 use rocket::response::Redirect;
 use rocket::Request;
 
 #[get("/")]
 fn index() -> Redirect {
-    Redirect::to(uri!("/diesel", diesel_sqlite::list()))
+    Redirect::to(uri!("/diesel", handler::list()))
 }
 
 #[catch(404)]
@@ -27,5 +28,5 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/", routes![index])
         .register("/", catchers![not_found])
-        .attach(diesel_sqlite::stage())
+        .attach(handler::stage())
 }
