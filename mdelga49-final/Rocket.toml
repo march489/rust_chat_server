@@ -1,0 +1,3 @@
+[default.databases.diesel]
+url = "db/my-app.db"
+timeout = 10

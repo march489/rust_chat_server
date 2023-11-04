@@ -13,12 +13,12 @@ use rocket::response::Redirect;
 
 #[get("/")]
 fn index() -> Redirect {
-    Redirect::to(uri!("/", diesel_sqlite::list()))
+    Redirect::to(uri!("/diesel_sqlite", diesel_sqlite::list()))
 }
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/diesel_sqlite", routes![index])
+        .mount("/", routes![index])
         .attach(diesel_sqlite::stage())
 }
