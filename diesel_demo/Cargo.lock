@@ -28,6 +28,8 @@ version = "0.1.0"
 dependencies = [
  "diesel",
  "dotenv",
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]

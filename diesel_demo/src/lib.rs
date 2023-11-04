@@ -7,8 +7,10 @@ extern crate dotenv;
 
 use diesel::prelude::*;
 use dotenv::dotenv;
-// use schema::posts::{body, title};
 use std::env;
+
+// #[database("diesel")]
+// struct Db(diesel::SqliteConnection);
 
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -20,10 +22,11 @@ pub fn establish_connection() -> SqliteConnection {
 }
 
 use self::models::{NewPost, Post};
+
 pub fn create_post(conn: &mut SqliteConnection, new_title: &str, new_body: &str) {
     use crate::schema::posts;
 
-    let new_post = NewPost {
+    let new_post: NewPost = NewPost {
         title: new_title,
         body: new_body,
     };
@@ -38,7 +41,7 @@ pub fn create_post(conn: &mut SqliteConnection, new_title: &str, new_body: &str)
         .load::<Post>(conn)
         .expect("Error getting new post");
 
-    for post in results {
-        println!("{:?}", post);
+    for result in results {
+        println!("{:?}", result);
     }
 }

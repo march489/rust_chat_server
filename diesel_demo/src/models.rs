@@ -1,6 +1,7 @@
 use diesel::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Clone, Queryable, Selectable, Debug)]
+#[derive(Clone, Queryable, Selectable, Debug, Serialize, Deserialize, Insertable)]
 #[diesel(table_name = crate::schema::posts)]
 pub struct Post {
     pub id: i32,
@@ -9,7 +10,7 @@ pub struct Post {
     pub published: i32,
 }
 
-#[derive(Clone, Queryable, Selectable)]
+#[derive(Clone, Queryable, Selectable, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::users)]
 pub struct User {
     pub id: i32,
@@ -17,7 +18,7 @@ pub struct User {
     pub password: String,
 }
 
-#[derive(Clone, Insertable)]
+#[derive(Clone, Insertable, Queryable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::posts)]
 pub struct NewPost<'a> {
     pub title: &'a str,
