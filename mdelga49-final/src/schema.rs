@@ -1,4 +1,5 @@
 // @generated automatically by Diesel CLI.
+// pub mod schema;
 
 diesel::table! {
     posts (id) {
@@ -6,5 +7,6 @@ diesel::table! {
         author -> Text,
         thread -> Text,
         body -> Text,
+        timestamp -> Integer,
     }
 }

@@ -2,12 +2,23 @@
 
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate rocket_sync_db_pools;
+extern crate diesel;
+mod schema;
+
+mod diesel_sqlite;
+
+use rocket::response::Redirect;
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello world!"
+fn index() -> Redirect {
+    Redirect::to(uri!("/", diesel_sqlite::list()))
 }
 
-fn main() {
-    rocket::ignite().mount("/", routes![index]).launch();
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
+        .mount("/diesel_sqlite", routes![index])
+        .attach(diesel_sqlite::stage())
 }
