@@ -10,15 +10,22 @@ mod schema;
 mod diesel_sqlite;
 
 use rocket::response::Redirect;
+use rocket::Request;
 
 #[get("/")]
 fn index() -> Redirect {
-    Redirect::to(uri!("/diesel_sqlite", diesel_sqlite::list()))
+    Redirect::to(uri!("/diesel", diesel_sqlite::list()))
+}
+
+#[catch(404)]
+fn not_found(req: &Request) -> String {
+    format!("I couldn't find {}. Please try again.", req.uri())
 }
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .mount("/", routes![index])
+        .register("/", catchers![not_found])
         .attach(diesel_sqlite::stage())
 }

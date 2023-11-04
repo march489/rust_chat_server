@@ -11,7 +11,7 @@ struct Db(diesel::SqliteConnection);
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable)]
+#[derive(Selectable, Debug, Clone, Deserialize, Serialize, Queryable, Insertable)]
 #[serde(crate = "rocket::serde")]
 #[diesel(table_name = posts)]
 struct Post {
@@ -47,6 +47,15 @@ async fn list(db: Db) -> Result<Json<Vec<i32>>> {
     Ok(Json(ids))
 }
 
+#[get("/<id>")]
+async fn read_one(db: Db, id: i32) -> Option<Json<Post>> {
+    println!("read_one(db, {id})");
+    db.run(move |conn| posts::table.filter(posts::id.eq(id)).first(conn))
+        .await
+        .map(Json)
+        .ok()
+}
+
 async fn run_migrations(rocket: Rocket<Build>) -> Rocket<Build> {
     use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
     const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
@@ -67,6 +76,6 @@ pub fn stage() -> AdHoc {
         rocket
             .attach(Db::fairing())
             .attach(AdHoc::on_ignite("Diesel Migrations", run_migrations))
-            .mount("/diesel_sqlite", routes![list, create])
+            .mount("/diesel", routes![list, create, read_one])
     })
 }
