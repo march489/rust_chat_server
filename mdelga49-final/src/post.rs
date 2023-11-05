@@ -16,20 +16,10 @@ pub struct Post {
     // pub created_at: Option<NaiveDateTime>,
 }
 
-#[derive(PartialEq, Debug, Clone, Deserialize, Serialize, Queryable, Insertable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = posts)]
-pub struct TestPost {
-    pub author: String,
-    pub thread: String,
-    pub body: String,
-    // #[serde(skip_deserializing)]
-    // pub created_at: Option<NaiveDateTime>,
-}
-
-impl TestPost {
-    pub fn new(aut: &str, thr: &str, bod: &str) -> TestPost {
-        TestPost {
+impl Post {
+    pub fn new(aut: &str, thr: &str, bod: &str) -> Post {
+        Post {
+            id: None,
             author: String::from(aut),
             thread: String::from(thr),
             body: String::from(bod),

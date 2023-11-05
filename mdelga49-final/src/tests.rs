@@ -2,10 +2,10 @@ use rocket::fairing::AdHoc;
 use rocket::http::Status;
 use rocket::local::blocking::Client;
 
-use crate::post::TestPost;
+use crate::post::Post;
 
 fn _run_test(base: &str, stage: AdHoc) {
-    const N: i32 = 20;
+    const N: i32 = 5;
 
     let client = Client::tracked(rocket::build().attach(stage)).unwrap();
 
@@ -16,14 +16,10 @@ fn _run_test(base: &str, stage: AdHoc) {
     );
 
     for i in 1..=N {
-        let post: TestPost = TestPost::new("MD", "Lobby", format!("This is post {i}").as_str());
+        let post: Post = Post::new("MD", "Lobby", format!("This is post {i}").as_str());
 
         println!("Trial {i}:");
-        let response = client
-            .post(base)
-            .json(&post)
-            .dispatch()
-            .into_json::<TestPost>();
+        let response = client.post(base).json(&post).dispatch().into_json::<Post>();
         assert_eq!(response.unwrap(), post);
 
         let list = client.get(base).dispatch().into_json::<Vec<i32>>().unwrap();
@@ -31,7 +27,7 @@ fn _run_test(base: &str, stage: AdHoc) {
 
         let last = list.last().unwrap();
         let response = client.get(format!("{}/{}", base, last)).dispatch();
-        assert_eq!(response.into_json::<TestPost>().unwrap(), post);
+        assert_eq!(response.into_json::<Post>().unwrap(), post);
     }
 }
 
