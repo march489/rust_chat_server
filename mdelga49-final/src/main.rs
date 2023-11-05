@@ -24,10 +24,15 @@ fn not_found(req: &Request) -> String {
     format!("I couldn't find {}. Please try again.", req.uri())
 }
 
+#[catch(500)]
+fn db_error(req: &Request) -> String {
+    format!("Something happened at the db level:\n{}", req.uri())
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .mount("/", routes![index])
-        .register("/", catchers![not_found])
+        .register("/", catchers![not_found, db_error])
         .attach(handler::stage())
 }
