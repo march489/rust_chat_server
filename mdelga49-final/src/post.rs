@@ -1,5 +1,5 @@
 use crate::schema::*;
-// use chrono::naive::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 use diesel::prelude::*;
 use rocket::serde::{Deserialize, Serialize};
 
@@ -12,8 +12,8 @@ pub struct Post {
     pub author: String,
     pub thread: String,
     pub body: String,
-    // #[serde(skip_deserializing)]
-    // pub created_at: Option<NaiveDateTime>,
+    #[serde(skip_deserializing)]
+    pub created_at: Option<NaiveDateTime>,
 }
 
 impl Post {
@@ -23,7 +23,7 @@ impl Post {
             author: String::from(aut),
             thread: String::from(thr),
             body: String::from(bod),
-            // created_at: None,
+            created_at: None,
         }
     }
 }

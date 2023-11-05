@@ -6,5 +6,6 @@ diesel::table! {
         author -> Text,
         thread -> Text,
         body -> Text,
+        created_at -> Nullable<Timestamp>,
     }
 }
