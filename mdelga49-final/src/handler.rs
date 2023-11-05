@@ -1,9 +1,10 @@
 use diesel::prelude::*;
 use rocket::fairing::AdHoc;
 use rocket::response::{status::Created, Debug};
-use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::serde::json::Json;
 use rocket::{Build, Rocket};
 
+use crate::post::Post;
 use crate::schema::*;
 
 #[database("diesel")]
@@ -11,21 +12,11 @@ struct Db(diesel::SqliteConnection);
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
-#[derive(Selectable, Debug, Clone, Deserialize, Serialize, Queryable, Insertable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = posts)]
-struct Post {
-    id: i32,
-    author: String,
-    thread: String,
-    body: String,
-    timestamp: i32,
-}
-
 #[post("/", data = "<post>")]
 async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
+    println!("Hi, you're in POST, and here is your data:\n{:?}", post);
     let post_value = post.clone();
-    let id: i32 = db
+    let id: Option<i32> = db
         .run(move |conn| {
             diesel::insert_into(posts::table)
                 .values(&*post_value)
@@ -34,13 +25,14 @@ async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
         })
         .await?;
 
-    post.id = id;
+    println!("We've come back from the database with the id [{:?}]", id);
+    post.id = Some(id.expect("returning guarantees ID present"));
     Ok(Created::new("/").body(post))
 }
 
 #[get("/")]
-async fn list(db: Db) -> Result<Json<Vec<i32>>> {
-    let ids: Vec<i32> = db
+async fn list(db: Db) -> Result<Json<Vec<Option<i32>>>> {
+    let ids: Vec<Option<i32>> = db
         .run(move |conn| posts::table.select(posts::id).load(conn))
         .await?;
 

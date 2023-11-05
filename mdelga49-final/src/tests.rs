@@ -1,19 +1,11 @@
 use rocket::fairing::AdHoc;
 use rocket::http::Status;
 use rocket::local::blocking::Client;
-use rocket::response;
-use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-struct Post {
-    author: String,
-    thread: String,
-    body: String,
-}
+use crate::post::TestPost;
 
 fn _run_test(base: &str, stage: AdHoc) {
-    const N: usize = 20;
+    const N: i32 = 20;
 
     let client = Client::tracked(rocket::build().attach(stage)).unwrap();
 
@@ -24,21 +16,22 @@ fn _run_test(base: &str, stage: AdHoc) {
     );
 
     for i in 1..=N {
-        let post: Post = Post {
-            author: String::from("MD"),
-            thread: String::from("Lobby"),
-            body: format!("This is message number{i}"),
-        };
+        let post: TestPost = TestPost::new("MD", "Lobby", format!("This is post {i}").as_str());
 
-        let response = client.post(base).json(&post).dispatch().into_json::<Post>();
+        println!("Trial {i}:");
+        let response = client
+            .post(base)
+            .json(&post)
+            .dispatch()
+            .into_json::<TestPost>();
         assert_eq!(response.unwrap(), post);
 
         let list = client.get(base).dispatch().into_json::<Vec<i32>>().unwrap();
-        assert_eq!(list.len(), i);
+        assert_eq!(list.len(), i as usize);
 
         let last = list.last().unwrap();
         let response = client.get(format!("{}/{}", base, last)).dispatch();
-        assert_eq!(response.into_json::<Post>().unwrap(), post);
+        assert_eq!(response.into_json::<TestPost>().unwrap(), post);
     }
 }
 

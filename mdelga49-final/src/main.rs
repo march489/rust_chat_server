@@ -7,6 +7,7 @@ extern crate rocket_sync_db_pools;
 extern crate diesel;
 
 mod handler;
+mod post;
 mod schema;
 mod tests;
 
