@@ -7,7 +7,6 @@ use rocket::serde::{Deserialize, Serialize};
 #[serde(crate = "rocket::serde")]
 #[diesel(table_name = posts)]
 pub struct Post {
-    #[serde(skip_deserializing)]
     pub id: Option<i32>,
     pub author: String,
     pub thread: String,

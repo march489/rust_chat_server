@@ -1,4 +1,6 @@
+use diesel::dsl::sql;
 use diesel::prelude::*;
+use diesel::sql_types;
 use rocket::fairing::AdHoc;
 use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
@@ -14,47 +16,21 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
 #[post("/", data = "<post>")]
 async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
-    println!("Hi, you're in POST, and here is your data:\n{:?}", post);
     let post_value = post.clone();
 
-    /*  The code below would be ideal, but returning returns the PREVIOUS value of id,
-    which for our posts would be NONE, and this causes a panic */
-    // let inserted: Option<i32> = db
-    //     .run(move |conn| {
-    //         diesel::insert_into(posts::table)
-    //             .values(&*post_value)
-    //             .returning(posts::id)
-    //             .get_result(conn)
-    //     })
-    //     .await?;
-
-    /*  This code is less ideal since it essentially requires us to do a matching
-    query after insertion to get the ID number attached to it back.
-    TODO: Maybe attach our own UUID to track on our end? */
-    let inserted: usize = db
+    let inserted: Option<i32> = db
         .run(move |conn| {
-            diesel::insert_into(posts::table)
+            let result = diesel::insert_into(posts::table)
                 .values(&*post_value)
                 .execute(conn)
+                .and_then(|_| {
+                    sql::<sql_types::Integer>("SELECT last_insert_rowid()").get_result::<i32>(conn)
+                });
+            result.ok()
         })
-        .await?;
+        .await;
 
-    assert_eq!(inserted, 1);
-
-    let post_val2 = post.clone();
-
-    let result: Option<Json<Post>> = db
-        .run(move |conn| {
-            posts::table
-                .filter(posts::body.eq(&post_val2.body))
-                .first(conn)
-        })
-        .await
-        .map(Json)
-        .ok();
-
-    println!("And here is the POST result:\n{:?}", result);
-    post.id = result.unwrap().id;
+    post.id = inserted;
     Ok(Created::new("/").body(post))
 }
 

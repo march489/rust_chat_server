@@ -5,7 +5,7 @@ use rocket::local::blocking::Client;
 use crate::post::Post;
 
 fn _run_test(base: &str, stage: AdHoc) {
-    const N: i32 = 5;
+    const N: usize = 5;
 
     let client = Client::tracked(rocket::build().attach(stage)).unwrap();
 
@@ -16,18 +16,33 @@ fn _run_test(base: &str, stage: AdHoc) {
     );
 
     for i in 1..=N {
-        let post: Post = Post::new("MD", "Lobby", format!("This is post {i}").as_str());
+        let mut post: Post = Post::new("MD", "Lobby", format!("This is post {i}").as_str());
 
         println!("Trial {i}:");
-        let response = client.post(base).json(&post).dispatch().into_json::<Post>();
-        assert_eq!(response.unwrap(), post);
+        let response = client
+            .post(base)
+            .json(&mut post)
+            .dispatch()
+            .into_json::<Post>();
+
+        let response_id: i32 = response.unwrap().id.unwrap();
 
         let list = client.get(base).dispatch().into_json::<Vec<i32>>().unwrap();
-        assert_eq!(list.len(), i as usize);
+        assert_eq!(list.len(), i);
 
         let last = list.last().unwrap();
-        let response = client.get(format!("{}/{}", base, last)).dispatch();
-        assert_eq!(response.into_json::<Post>().unwrap(), post);
+        assert_eq!(*last, response_id);
+
+        let response: Post = client
+            .get(format!("{}/{}", base, last))
+            .dispatch()
+            .into_json::<Post>()
+            .unwrap();
+
+        // println!("response json:\n{:?}", response);
+        assert_eq!(response.author, post.author);
+        assert_eq!(response.thread, post.thread);
+        assert_eq!(response.body, post.body);
     }
 }
 
