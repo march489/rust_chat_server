@@ -4,20 +4,22 @@
 extern crate rocket;
 #[macro_use]
 extern crate rocket_sync_db_pools;
-extern crate diesel;
 
 mod handler;
+mod message;
 mod post;
 mod schema;
 mod tests;
 
+use diesel::IntoSql;
+use message::Message;
+use rocket::form::Form;
+use rocket::fs::{relative, FileServer};
+use rocket::response::stream::{Event, EventStream};
 use rocket::response::Redirect;
-use rocket::Request;
-
-#[get("/")]
-fn index() -> Redirect {
-    Redirect::to(uri!("/diesel", handler::list()))
-}
+use rocket::tokio::select;
+use rocket::tokio::sync::broadcast::{channel, error::RecvError, Sender};
+use rocket::{Request, Shutdown, State};
 
 #[catch(404)]
 fn not_found(req: &Request) -> String {
@@ -29,10 +31,43 @@ fn db_error(req: &Request) -> String {
     format!("Something happened at the db level:\n{}", req.uri())
 }
 
+// #[get("/")]
+// fn index() -> Redirect {
+//     Redirect::to(uri!("/diesel", handler::list()))
+// }
+
+#[get("/events")]
+async fn events(queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStream![] {
+    let mut rx = queue.subscribe();
+    EventStream! {
+        loop {
+            let msg = select! {
+                msg = rx.recv() => match msg {
+                    Ok(msg) => msg,
+                    Err(RecvError::Closed) => break,
+                    Err(RecvError::Lagged(_)) => continue,
+                },
+
+                _ = &mut end => break,
+            };
+
+            yield Event::json(&msg);
+        }
+    }
+}
+
+#[post("/message", data = "<form>")]
+fn post_message(form: Form<Message>, queue: &State<Sender<Message>>) {
+    let _res = queue.send(form.into_inner());
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/", routes![index])
+        .manage(channel::<Message>(1024).0)
         .register("/", catchers![not_found, db_error])
+        // .mount("/", routes![index])
+        .mount("/", routes![post_message, events])
+        .mount("/", FileServer::from(relative!("static")))
         .attach(handler::stage())
 }
