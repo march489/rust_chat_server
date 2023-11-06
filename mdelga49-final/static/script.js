@@ -13,7 +13,7 @@ let roomNameField = newRoomForm.querySelector("#name");
 
 var STATE = {
     room: "lobby",
-    rooms: {},
+    rooms: [],
     connected: false,
 }
 
@@ -36,13 +36,14 @@ function addRoom(name) {
         return false;
     }
 
-    var node = roomTemplate.content.cloneNode(true);
-    var room = node.querySelector(".room");
+    let node = roomTemplate.content.cloneNode(true);
+    let room = node.querySelector(".room");
     room.addEventListener("click", () => changeRoom(name));
     room.textContent = name;
     room.dataset.name = name;
     roomListDiv.appendChild(node);
 
+    STATE.rooms.push(name);
     STATE[name] = [];
     changeRoom(name);
     return true;
@@ -81,6 +82,17 @@ function addMessage(room, username, message, push = false) {
         node.querySelector(".message .text").textContent = message;
         messagesDiv.appendChild(node);
     }
+}
+
+function writeMessageToDb(room, username, message) {
+    // write to the DB
+    const msg = { author: username, thread: room, body: message };
+    fetch("/diesel", {
+        method: "POST",
+        body: JSON.stringify(msg)
+    }).then((response) => {
+        if (response.ok) messageField.value = "";
+    });
 }
 
 // Subscribe to the event source at `uri` with exponential backoff reconnect.
@@ -124,14 +136,43 @@ function setConnectedStatus(status) {
     statusDiv.className = (status) ? "connected" : "reconnecting";
 }
 
-// Let's go! Initialize the world.
-function init() {
-    // Initialize some rooms.
-    addRoom("lobby");
-    addRoom("rocket");
+function loadPreviousMessages(previousMessages) {
+    previousMessages
+        .map((obj) => { return obj.room; })
+        .filter((element, index, arr) => {
+            return arr.indexOf(element) === index;
+        }).forEach((room) => addRoom(room));
+
     changeRoom("lobby");
-    addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message.", true);
-    addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+
+    previousMessages.forEach((obj) => {
+        let { room, username, message } = obj;
+        addMessage(room, username, message, true);
+    })
+}
+
+// Let's go! Initialize the world.
+async function init() {
+    const previousMessages = await fetch("/diesel/all",
+        {
+            method: "GET"
+        }).then((response) => {
+            // response.json();
+            let result = response.json();
+            console.log(result);
+            return result;
+        });
+
+    if (previousMessages.length == 0) {
+        // Initialize some rooms.
+        addRoom("lobby");
+        addRoom("rocket");
+        changeRoom("lobby");
+        addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message.", true);
+        addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+    } else {
+        loadPreviousMessages(previousMessages);
+    }
 
     // Set up the form handler.
     newMessageForm.addEventListener("submit", (e) => {
@@ -143,6 +184,9 @@ function init() {
         if (!message || !username) return;
 
         if (STATE.connected) {
+            // Write to the DB
+            writeMessageToDb(room, username, message);
+
             fetch("/message", {
                 method: "POST",
                 body: new URLSearchParams({ room, username, message }),

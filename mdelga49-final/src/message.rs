@@ -1,6 +1,7 @@
+use diesel::prelude::*;
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, FromForm, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromForm, Serialize, Deserialize, Queryable)]
 #[cfg_attr(test, derive(PartialEq, UriDisplayQuery))]
 #[serde(crate = "rocket::serde")]
 pub struct Message {

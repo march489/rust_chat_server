@@ -11,12 +11,10 @@ mod post;
 mod schema;
 mod tests;
 
-use diesel::IntoSql;
 use message::Message;
 use rocket::form::Form;
 use rocket::fs::{relative, FileServer};
 use rocket::response::stream::{Event, EventStream};
-use rocket::response::Redirect;
 use rocket::tokio::select;
 use rocket::tokio::sync::broadcast::{channel, error::RecvError, Sender};
 use rocket::{Request, Shutdown, State};
@@ -31,11 +29,7 @@ fn db_error(req: &Request) -> String {
     format!("Something happened at the db level:\n{}", req.uri())
 }
 
-// #[get("/")]
-// fn index() -> Redirect {
-//     Redirect::to(uri!("/diesel", handler::list()))
-// }
-
+// #[get("/events")]
 #[get("/events")]
 async fn events(queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStream![] {
     let mut rx = queue.subscribe();
@@ -66,7 +60,6 @@ fn rocket() -> _ {
     rocket::build()
         .manage(channel::<Message>(1024).0)
         .register("/", catchers![not_found, db_error])
-        // .mount("/", routes![index])
         .mount("/", routes![post_message, events])
         .mount("/", FileServer::from(relative!("static")))
         .attach(handler::stage())

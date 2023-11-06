@@ -6,6 +6,7 @@ use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
 use rocket::{Build, Rocket};
 
+use crate::message::Message;
 use crate::post::Post;
 use crate::schema::*;
 
@@ -13,6 +14,18 @@ use crate::schema::*;
 struct Db(diesel::SqliteConnection);
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
+
+#[get("/all")]
+async fn load_data(db: Db) -> Option<Json<Vec<Message>>> {
+    db.run(move |conn| {
+        posts::table
+            .select((posts::thread, posts::author, posts::body))
+            .load(conn)
+    })
+    .await
+    .map(Json)
+    .ok()
+}
 
 #[post("/", data = "<post>")]
 async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
@@ -94,7 +107,7 @@ pub fn stage() -> AdHoc {
             .attach(AdHoc::on_ignite("Diesel Migrations", run_migrations))
             .mount(
                 "/diesel",
-                routes![list, create, read_one, delete_one, destroy],
+                routes![list, create, read_one, delete_one, destroy, load_data],
             )
     })
 }
