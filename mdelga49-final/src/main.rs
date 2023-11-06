@@ -5,14 +5,14 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_sync_db_pools;
 
-mod handler;
-mod message;
+// mod handler;
+// mod message;
 mod message_handler;
 mod post;
 mod schema;
-mod tests;
 
-use message::Message;
+// #[cfg(test)]
+use crate::message_handler::message::Message;
 use rocket::form::Form;
 use rocket::fs::{relative, FileServer};
 use rocket::response::stream::{Event, EventStream};
@@ -63,5 +63,5 @@ fn rocket() -> _ {
         .register("/", catchers![not_found, db_error])
         .mount("/", routes![post_message, events])
         .mount("/", FileServer::from(relative!("static")))
-        .attach(handler::stage())
+        .attach(message_handler::stage())
 }

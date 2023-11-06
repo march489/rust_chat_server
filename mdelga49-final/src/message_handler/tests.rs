@@ -2,7 +2,7 @@ use rocket::fairing::AdHoc;
 use rocket::http::Status;
 use rocket::local::blocking::Client;
 
-use crate::post::Post;
+use crate::message_handler::post::Post;
 
 fn _run_test(base: &str, stage: AdHoc) {
     const N: usize = 20;
@@ -60,5 +60,5 @@ fn _run_test(base: &str, stage: AdHoc) {
 
 #[test]
 fn test_diesel_db() {
-    _run_test("/diesel", crate::handler::stage())
+    _run_test("/diesel", crate::message_handler::stage())
 }
