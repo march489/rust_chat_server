@@ -7,6 +7,7 @@ extern crate rocket_sync_db_pools;
 
 mod handler;
 mod message;
+mod message_handler;
 mod post;
 mod schema;
 mod tests;

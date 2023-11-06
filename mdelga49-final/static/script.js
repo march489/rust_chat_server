@@ -151,6 +151,16 @@ function loadPreviousMessages(previousMessages) {
     })
 }
 
+function loadInitialMessages() {
+    addRoom("lobby");
+    addRoom("rocket");
+    changeRoom("lobby");
+    addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message.", true);
+    writeMessageToDb("lobby", "Rocket", "Hey! Open another browser tab, send a message.");
+    addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+    writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
+}
+
 // Let's go! Initialize the world.
 async function init() {
     const previousMessages = await fetch("/diesel/all",
@@ -165,11 +175,7 @@ async function init() {
 
     if (previousMessages.length == 0) {
         // Initialize some rooms.
-        addRoom("lobby");
-        addRoom("rocket");
-        changeRoom("lobby");
-        addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message.", true);
-        addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+        loadInitialMessages();
     } else {
         loadPreviousMessages(previousMessages);
     }
