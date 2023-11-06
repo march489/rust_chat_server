@@ -11,16 +11,16 @@ use crate::post::Post;
 use crate::schema::*;
 
 #[database("diesel")]
-struct Db(diesel::SqliteConnection);
+pub struct Db(diesel::SqliteConnection);
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
 #[get("/all")]
-async fn load_data(db: Db) -> Option<Json<Vec<Message>>> {
+async fn load_messages(db: Db) -> Option<Json<Vec<Message>>> {
     db.run(move |conn| {
         posts::table
             .select((posts::thread, posts::author, posts::body))
-            .load(conn)
+            .load::<Message>(conn)
     })
     .await
     .map(Json)
@@ -107,7 +107,7 @@ pub fn stage() -> AdHoc {
             .attach(AdHoc::on_ignite("Diesel Migrations", run_migrations))
             .mount(
                 "/diesel",
-                routes![list, create, read_one, delete_one, destroy, load_data],
+                routes![list, create, read_one, delete_one, destroy, load_messages],
             )
     })
 }
