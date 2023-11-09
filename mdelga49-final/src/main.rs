@@ -8,10 +8,9 @@ extern crate rocket_sync_db_pools;
 // mod handler;
 // mod message;
 mod message_handler;
-mod post;
+// mod post;
 mod schema;
 
-// #[cfg(test)]
 use crate::message_handler::message::Message;
 use rocket::form::Form;
 use rocket::fs::{relative, FileServer};
