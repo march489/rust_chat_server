@@ -3,6 +3,7 @@ let messagesDiv = document.getElementById('messages');
 let newMessageForm = document.getElementById('new-message');
 let newRoomForm = document.getElementById('new-room');
 let statusDiv = document.getElementById('status');
+let loginModal = document.getElementById('login-modal');
 
 let roomTemplate = document.getElementById('room');
 let messageTemplate = document.getElementById('message');
@@ -153,21 +154,30 @@ function loadPreviousMessages(previousMessages) {
 
 function loadInitialMessages() {
     addRoom("lobby");
-    addRoom("rocket");
+    // addRoom("rocket");
     changeRoom("lobby");
-    addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message.", true);
-    writeMessageToDb("lobby", "Rocket", "Hey! Open another browser tab, send a message.");
-    addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
-    writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
+    addMessage("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!", true);
+    writeMessageToDb("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!");
+    // addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+    // writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
 }
 
 // Let's go! Initialize the world.
-async function init() {
+async function InitGameRooms() {
+    // testing connection to user db
+    const userIds = await fetch("/login/",
+        {
+            method: "GET"
+        }).then((response) => {
+            let result = response.json();
+            console.log(result);
+            return result;
+        });
+
     const previousMessages = await fetch("/diesel/all",
         {
             method: "GET"
         }).then((response) => {
-            // response.json();
             let result = response.json();
             console.log(result);
             return result;
@@ -219,4 +229,4 @@ async function init() {
     subscribe("/events");
 }
 
-init();
+InitGameRooms();

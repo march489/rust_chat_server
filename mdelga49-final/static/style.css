@@ -101,6 +101,12 @@ form {
     border-top: 2px solid #242424;
 }
 
+.modal form {
+    display: block;
+    border-top: 2px solid #fff;
+    padding: 30px 30px 30x;
+}
+
 form * {
     height: 40px;
     background: var(--fg-light);
@@ -196,15 +202,38 @@ form button {
     color: rgba(0, 0, 0, 0.9);
 }
 
-.modal {
-    display: block;
-    position: absolute;
-    z-index: 1;
-    left: 50%;
-    top: 50%;
-    width: 25%;
-    height: 50%;
-    transform: translate(-50%, -50%);
-    overflow: auto;
-    background-color: rgba(255, 255, 255, 0.9);
+.loginForm .input-group {
+    vertical-align: top;
 }
+
+.modal {
+    width: 400 px;
+    background-color: #fff;
+    border-radius: 6px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 30px 30px 30px;
+    color: #333;
+}
+
+.close-modal {
+    visibility: hidden;
+}
+
+.modal .button {
+    padding: 10px 60px;
+    background-color: #97b0e2;
+    border: 0;
+    outline: none;
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: 500;
+    border-radius: 30px;
+}
+
+/* .modal .input-group {
+    padding: 5px 5xp 5px;
+} */

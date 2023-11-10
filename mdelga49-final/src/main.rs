@@ -5,10 +5,8 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_sync_db_pools;
 
-// mod handler;
-// mod message;
+mod login;
 mod message_handler;
-// mod post;
 mod schema;
 
 use crate::message_handler::message::Message;
@@ -63,4 +61,5 @@ fn rocket() -> _ {
         .mount("/", routes![post_message, events])
         .mount("/", FileServer::from(relative!("static")))
         .attach(message_handler::stage())
+        .attach(login::stage())
 }
