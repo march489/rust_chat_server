@@ -6,12 +6,14 @@
     <title>Rocket Rooms</title>
     <link rel="stylesheet" href="/reset.css">
     <link rel="stylesheet" href="/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="/script.js" charset="utf-8" defer></script>
     <script src="/login.js" charset="utf-8" defer></script>
 </head>
 
 <body>
     <main>
+        <!-- <div class="overlay" id="overlay"> -->
         <div id="sidebar">
             <div id="status" class="pending"></div>
 
@@ -46,29 +48,63 @@
                 <button type="submit" id="send">Send</button>
             </form>
         </div>
+        <!-- </div> -->
     </main>
 
-    <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <!-- <span class="close">&times;</span> -->
-            <!-- <p>This is a modal!</p> -->
-            <form class="loginForm" id="loginForm">
-                <div class="input-group">
-                    <label for="email" class="label">Email Address</label>
-                    <input type="text" id="email" class="input">
+    <div class="overlay" id="overlay">
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <form class="loginForm" id="loginForm">
+                    <div class="input-group">
+                        <label for="login-email" class="label">Email Address</label>
+                        <input type="text" id="login-email" class="input">
+                        <br>
+                        <span class="error-message"></span>
+                    </div>
                     <br>
-                    <span class="error-message"></span>
-                </div>
-                <br>
-                <div class="input-group">
-                    <label for="password" class="label">Password</label>
-                    <input type="password" id="password" class="password">
+                    <div class="input-group">
+                        <label for="login-password" class="label">Password</label>
+                        <input type="password" id="login-password" class="password">
+                        <br>
+                        <span class="error-message"></span>
+                    </div>
                     <br>
-                    <span class="error-message"></span>
-                </div>
-                <br>
-                <button type="submit" class="button" id="login-button">Login</button>
-            </form>
+                    <button type="submit" class="button" id="login-button">Login</button>
+                    <br>
+                    <br>
+                    <p id="create-account-link">Not yet registered? Create your account</p>
+                </form>
+            </div>
+        </div>
+
+        <div id="new-user-modal" class="modal close-modal">
+            <div class="modal-content">
+                <p> Create your account </p>
+                <form class="loginForm" id="createAccountForm">
+                    <div class="input-group">
+                        <label for="create-email" class="label">Email Address</label>
+                        <input type="text" id="create-email" class="input">
+                        <br>
+                        <span class="error-message"></span>
+                    </div>
+                    <br>
+                    <div class="input-group">
+                        <label for="create-password" class="label">Password</label>
+                        <input type="password" id="create-password" class="password">
+                        <br>
+                        <span class="error-message"></span>
+                    </div>
+                    <br>
+                    <div class="input-group">
+                        <label for="confirm-password" class="label"> Confirm password</label>
+                        <input type="password" id="confirm-password" class="password">
+                        <br>
+                        <span class="error-message"></span>
+                    </div>
+                    <br>
+                    <button type="submit" class="button" id="create-account-button">Create</button>
+                </form>
+            </div>
         </div>
     </div>
 </body>

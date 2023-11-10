@@ -1,7 +1,6 @@
 const loginButton = document.getElementById('login-button');
 const loginForm = document.getElementById('loginForm');
-
-
+const overlay = document.getElementById('overlay');
 
 class Login {
     constructor(form, fields) {
@@ -27,6 +26,7 @@ class Login {
             if (error == 0) {
                 console.log("success --> hit the backend");
                 loginModal.classList.add("close-modal");
+                $('.overlay').hide();
             }
         })
     }
