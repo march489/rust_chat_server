@@ -1,11 +1,11 @@
 -- Your SQL goes here
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
+    email TEXT NOT NULL,
     password TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX idx_users_username ON users(username);
+CREATE UNIQUE INDEX idx_users_email ON users(email);
 
 CREATE TABLE rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

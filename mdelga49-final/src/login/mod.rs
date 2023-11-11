@@ -8,11 +8,11 @@ use rocket::serde::json::Json;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-pub mod credentials;
 pub mod response;
+pub mod user;
 
 use crate::db::Db;
-use crate::login::credentials::LoginCredentials;
+use crate::login::user::User;
 use crate::schema::*;
 use response::Response;
 #[cfg(test)]
@@ -22,18 +22,15 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 const NO_MATCH_ERR_MSG: &str = "Invalid username or password";
 
 #[post("/auth", data = "<credentials>")]
-async fn authorize_user(
-    db: Db,
-    credentials: Json<LoginCredentials>,
-) -> Result<Json<Option<Response>>> {
-    let creds: LoginCredentials = credentials.into_inner();
-    let entered_username: String = creds.username.clone();
+async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<Response>>> {
+    let creds: User = credentials.into_inner();
+    let entered_email: String = creds.email.clone();
     let entered_password: String = creds.password.clone();
 
-    let returned_credentials: Option<LoginCredentials> = db
+    let returned_credentials: Option<User> = db
         .run(move |conn| {
             users::table
-                .filter(users::username.eq(entered_username))
+                .filter(users::email.eq(entered_email))
                 .first(conn)
         })
         .await
@@ -76,23 +73,19 @@ async fn list_users(db: Db) -> Result<Json<Vec<Option<i32>>>> {
 }
 
 #[get("/id/<id>")]
-async fn query_user_by_id(db: Db, id: i32) -> Option<Json<LoginCredentials>> {
+async fn query_user_by_id(db: Db, id: i32) -> Option<Json<User>> {
     db.run(move |conn| users::table.filter(users::id.eq(id)).first(conn))
         .await
         .map(Json)
         .ok()
 }
 
-#[get("/email/<email_username>")]
-async fn query_user_by_email(db: Db, email_username: String) -> Option<Json<LoginCredentials>> {
-    db.run(move |conn| {
-        users::table
-            .filter(users::username.eq(email_username))
-            .first(conn)
-    })
-    .await
-    .map(Json)
-    .ok()
+#[get("/email/<email>")]
+async fn query_user_by_email(db: Db, email: String) -> Option<Json<User>> {
+    db.run(move |conn| users::table.filter(users::email.eq(email)).first(conn))
+        .await
+        .map(Json)
+        .ok()
 }
 
 #[delete("/<id>")]
@@ -115,14 +108,14 @@ async fn destroy(db: Db) -> Result<()> {
     Ok(())
 }
 
-#[post("/", data = "<credentials>")]
-async fn create(db: Db, credentials: Json<LoginCredentials>) -> Result<Created<Json<Option<i32>>>> {
-    let new_user_credentials: Json<LoginCredentials> = credentials.clone();
+#[post("/", data = "<user>")]
+async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<i32>>>> {
+    let new_user: Json<User> = user.clone();
 
     let new_user_id: Option<i32> = db
         .run(move |conn| {
             let result = diesel::insert_into(users::table)
-                .values(&*new_user_credentials)
+                .values(&*new_user)
                 .execute(conn)
                 .and_then(|_| {
                     sql::<sql_types::Integer>("SELECT last_insert_rowid()").get_result::<i32>(conn)
