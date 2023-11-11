@@ -8,10 +8,13 @@ use rocket::serde::json::Json;
 
 pub mod credentials;
 
+use crate::db::Db;
 use crate::schema::*;
+#[cfg(test)]
+mod test;
 
-#[database("diesel")]
-pub struct Db(diesel::SqliteConnection);
+// #[database("diesel")]
+// pub struct Db(diesel::SqliteConnection);
 
 use crate::login::credentials::LoginCredentials;
 
@@ -20,13 +23,18 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 #[get("/")]
 async fn list_users(db: Db) -> Result<Json<Vec<Option<i32>>>> {
     let ids: Vec<Option<i32>> = db
-        .run(move |conn| users::table.select(users::id).load(conn))
+        .run(move |conn| {
+            users::table
+                .select(users::id)
+                .order(users::id.asc())
+                .load(conn)
+        })
         .await?;
 
     Ok(Json(ids))
 }
 
-#[get("/<id>")]
+#[get("/id/<id>")]
 async fn query_user_by_id(db: Db, id: i32) -> Option<Json<LoginCredentials>> {
     db.run(move |conn| users::table.filter(users::id.eq(id)).first(conn))
         .await
@@ -34,7 +42,7 @@ async fn query_user_by_id(db: Db, id: i32) -> Option<Json<LoginCredentials>> {
         .ok()
 }
 
-#[get("/<email_username>")]
+#[get("/email/<email_username>")]
 async fn query_user_by_email(db: Db, email_username: String) -> Option<Json<LoginCredentials>> {
     db.run(move |conn| {
         users::table
@@ -86,13 +94,13 @@ async fn create(db: Db, credentials: Json<LoginCredentials>) -> Result<Created<J
 }
 
 #[get("/<email>/<password>")]
-async fn authenticate_user(__db: Db, email: String, password: String) {
+async fn authenticate_user(_db: Db, email: String, password: String) {
     println!("querying email {email} with password {password}");
 }
 
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("Login Stage", |rocket| async {
-        rocket.attach(Db::fairing()).mount(
+        rocket.mount(
             "/auth",
             routes![
                 query_user_by_email,

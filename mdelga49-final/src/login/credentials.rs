@@ -10,3 +10,13 @@ pub struct LoginCredentials {
     pub username: String,
     pub password: String,
 }
+
+impl LoginCredentials {
+    pub fn new(email: &String, password: &String) -> LoginCredentials {
+        LoginCredentials {
+            id: None,
+            username: email.clone(),
+            password: password.clone(),
+        }
+    }
+}

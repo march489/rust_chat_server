@@ -11,12 +11,13 @@ mod post;
 #[cfg(test)]
 mod tests;
 
+use crate::db::Db;
 use crate::message_handler::message::Message;
 use crate::message_handler::post::Post;
 use crate::schema::*;
 
-#[database("diesel")]
-pub struct Db(diesel::SqliteConnection);
+// #[database("diesel")]
+// pub struct Db(diesel::SqliteConnection);
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
