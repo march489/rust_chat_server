@@ -165,7 +165,7 @@ function loadInitialMessages() {
 // Let's go! Initialize the world.
 async function InitGameRooms() {
     // testing connection to user db
-    const userIds = await fetch("/login/",
+    const userIds = await fetch("/auth/",
         {
             method: "GET"
         }).then((response) => {
@@ -229,4 +229,5 @@ async function InitGameRooms() {
     subscribe("/events");
 }
 
-InitGameRooms();
+const auth = new Auth();
+// InitGameRooms();

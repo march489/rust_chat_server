@@ -5,20 +5,61 @@ use rocket::fairing::AdHoc;
 use rocket::response::status::Created;
 use rocket::response::Debug;
 use rocket::serde::json::Json;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 pub mod credentials;
+pub mod response;
 
 use crate::db::Db;
+use crate::login::credentials::LoginCredentials;
 use crate::schema::*;
+use response::Response;
 #[cfg(test)]
 mod test;
 
-// #[database("diesel")]
-// pub struct Db(diesel::SqliteConnection);
-
-use crate::login::credentials::LoginCredentials;
-
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
+const NO_MATCH_ERR_MSG: &str = "Invalid username or password";
+
+#[post("/auth", data = "<credentials>")]
+async fn authorize_user(
+    db: Db,
+    credentials: Json<LoginCredentials>,
+) -> Result<Json<Option<Response>>> {
+    let creds: LoginCredentials = credentials.into_inner();
+    let entered_username: String = creds.username.clone();
+    let entered_password: String = creds.password.clone();
+
+    let returned_credentials: Option<LoginCredentials> = db
+        .run(move |conn| {
+            users::table
+                .filter(users::username.eq(entered_username))
+                .first(conn)
+        })
+        .await
+        .ok();
+
+    match returned_credentials {
+        Some(credentials) => {
+            let returned_password: &String = &credentials.password;
+            let mut hasher = DefaultHasher::new();
+
+            entered_password.hash(&mut hasher);
+            if hasher.finish().to_string().eq(returned_password) {
+                Ok(Json(Response::new(true, None)))
+            } else {
+                Ok(Json(Response::new(
+                    false,
+                    Some(NO_MATCH_ERR_MSG.to_string()),
+                )))
+            }
+        }
+        None => Ok(Json(Response::new(
+            false,
+            Some(NO_MATCH_ERR_MSG.to_string()),
+        ))),
+    }
+}
 
 #[get("/")]
 async fn list_users(db: Db) -> Result<Json<Vec<Option<i32>>>> {
@@ -93,11 +134,6 @@ async fn create(db: Db, credentials: Json<LoginCredentials>) -> Result<Created<J
     Ok(Created::new("/").body(Json(new_user_id)))
 }
 
-#[get("/<email>/<password>")]
-async fn authenticate_user(_db: Db, email: String, password: String) {
-    println!("querying email {email} with password {password}");
-}
-
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("Login Stage", |rocket| async {
         rocket.mount(
@@ -108,8 +144,8 @@ pub fn stage() -> AdHoc {
                 destroy,
                 delete_user,
                 create,
-                authenticate_user,
-                list_users
+                list_users,
+                authorize_user
             ],
         )
     })

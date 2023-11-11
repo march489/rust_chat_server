@@ -161,10 +161,31 @@ form button {
     background-color: var(--bg-dark);
 }
 
+#top-bar {
+    display: flex;
+}
+
+.flex-child-left {
+    flex: 1;
+}
+
+#logout-button-box {
+    text-align: center;
+    font-size: 14px;
+    background-color: #fff;
+    padding: 5px 10px;
+}
+
+.logout-text {
+    cursor: pointer;
+}
+
 #status {
     padding: 5px 10px;
     text-align: center;
     font-size: 12px;
+    /* pairs with flex: 1 on flex-child-left */
+    flex: 3;
 }
 
 #status.pending::before {
@@ -246,6 +267,7 @@ form button {
     width: 100vw;
     height: 100vh;
     background-color: rgba(128, 128, 128, 0.5);
+    display: none;
 }
 
 #create-account-link {
@@ -260,3 +282,13 @@ form button {
     color: #5243a4;
     box-shadow: 3px #000;
 }
+
+.error-message {
+    color: red;
+    text-align: justify;
+}
+
+/* .input-error {
+    border: red 5px;
+    box-shadow: red;
+} */

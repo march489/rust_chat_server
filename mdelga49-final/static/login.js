@@ -1,6 +1,7 @@
 const loginButton = document.getElementById('login-button');
 const loginForm = document.getElementById('loginForm');
 const overlay = document.getElementById('overlay');
+const emailRegex = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
 class Login {
     constructor(form, fields) {
@@ -27,6 +28,9 @@ class Login {
                 console.log("success --> hit the backend");
                 loginModal.classList.add("close-modal");
                 $('.overlay').hide();
+                localStorage.setItem("auth", 1);
+                localStorage.setItem("time", Date.now());
+                InitGameRooms();
             }
         })
     }
@@ -53,6 +57,15 @@ class Login {
                     return true;
                 }
             } else {
+                // this is the email field
+                if (!String(field.value).toLowerCase().match(emailRegex)) {
+                    this.setStatus(
+                        field,
+                        `${field.previousElementSibling.innerText} must be a valid email address`,
+                        "error"
+                    );
+                    return false;
+                }
                 this.setStatus(field, null, "success");
                 return true;
             }
@@ -78,6 +91,6 @@ class Login {
 
 
 if (loginForm) {
-    const fields = ["email", "password"];
+    const fields = ["login-email", "login-password"];
     const validator = new Login(loginForm, fields);
 }

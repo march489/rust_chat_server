@@ -7,15 +7,20 @@
     <link rel="stylesheet" href="/reset.css">
     <link rel="stylesheet" href="/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/auth.js" charset="utf-8" defer></script>
     <script src="/script.js" charset="utf-8" defer></script>
     <script src="/login.js" charset="utf-8" defer></script>
 </head>
 
 <body>
     <main>
-        <!-- <div class="overlay" id="overlay"> -->
         <div id="sidebar">
-            <div id="status" class="pending"></div>
+            <div id="top-bar" class="flex-parent">
+                <div id="logout-button-box" class="flex-child-left">
+                    <p class="logout-text"><a href="#" class="logout">Log Out</a></p>
+                </div>
+                <div id="status" class="pending flex-child-right"></div>
+            </div>
 
             <div id="room-list">
                 <template id="room">
@@ -48,7 +53,6 @@
                 <button type="submit" id="send">Send</button>
             </form>
         </div>
-        <!-- </div> -->
     </main>
 
     <div class="overlay" id="overlay">
