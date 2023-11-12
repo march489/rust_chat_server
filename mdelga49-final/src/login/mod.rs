@@ -43,16 +43,22 @@ async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<R
 
             entered_password.hash(&mut hasher);
             if hasher.finish().to_string().eq(returned_password) {
-                Ok(Json(Response::new(true, None)))
+                Ok(Json(Response::new(
+                    true,
+                    Some(credentials.id.unwrap()),
+                    None,
+                )))
             } else {
                 Ok(Json(Response::new(
                     false,
+                    None,
                     Some(NO_MATCH_ERR_MSG.to_string()),
                 )))
             }
         }
         None => Ok(Json(Response::new(
             false,
+            None,
             Some(NO_MATCH_ERR_MSG.to_string()),
         ))),
     }
@@ -110,7 +116,11 @@ async fn destroy(db: Db) -> Result<()> {
 
 #[post("/", data = "<user>")]
 async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<i32>>>> {
-    let new_user: Json<User> = user.clone();
+    let mut new_user: Json<User> = user.clone();
+
+    let mut hasher = DefaultHasher::new();
+    new_user.password.hash(&mut hasher);
+    new_user.password = hasher.finish().to_string();
 
     let new_user_id: Option<i32> = db
         .run(move |conn| {

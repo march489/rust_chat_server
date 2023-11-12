@@ -2,8 +2,6 @@
 
 #[macro_use]
 extern crate rocket;
-// #[macro_use]
-// extern crate rocket_sync_db_pools;
 
 mod db;
 mod login;
