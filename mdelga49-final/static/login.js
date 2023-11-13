@@ -51,11 +51,21 @@ class Login {
                 // check the back end
                 this.getCredentialsAuthorized().then((isAuthorized) => {
                     if (isAuthorized) {
+                        // erase the modal and the overlay
+                        const errorMessageSpan = loginButton.parentElement.querySelector('.error-message');
+                        errorMessageSpan.innerText = "";
                         loginModal.classList.add("close-modal");
                         $('.overlay').hide();
+
+                        // save data
                         localStorage.setItem("auth", 1);
                         localStorage.setItem("time", Date.now());
+
+                        // load data
                         InitGameRooms();
+                    } else {
+                        const errorMessageSpan = loginButton.parentElement.querySelector('.error-message');
+                        errorMessageSpan.innerText = "Invalid username or password";
                     }
                 })
             }
