@@ -164,16 +164,6 @@ function loadInitialMessages() {
 
 // Let's go! Initialize the world.
 async function InitGameRooms() {
-    // testing connection to user db
-    const userIds = await fetch("/auth/",
-        {
-            method: "GET"
-        }).then((response) => {
-            let result = response.json();
-            console.log(result);
-            return result;
-        });
-
     const previousMessages = await fetch("/diesel/all",
         {
             method: "GET"
@@ -229,5 +219,10 @@ async function InitGameRooms() {
     subscribe("/events");
 }
 
+// run the authenticator
 const auth = new Auth();
-// InitGameRooms();
+
+if (loginForm) {
+    const fields = ["login-email", "login-password"];
+    const validator = new Login(loginForm, fields);
+}

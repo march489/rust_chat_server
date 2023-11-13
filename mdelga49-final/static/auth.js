@@ -12,6 +12,8 @@ class Auth {
             console.log("no auth found");
             $('.overlay').show();
         } else {
+            // TODO: include pulls from localStorage of userId
+            // and pass that to InitGameRooms()
             console.log("validated");
             InitGameRooms();
 

@@ -21,11 +21,14 @@ mod test;
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 const NO_MATCH_ERR_MSG: &str = "Invalid username or password";
 
-#[post("/auth", data = "<credentials>")]
+#[post("/shibboleth", data = "<credentials>")]
 async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<Response>>> {
     let creds: User = credentials.into_inner();
     let entered_email: String = creds.email.clone();
     let entered_password: String = creds.password.clone();
+
+    // DEBUGGING
+    println!("entered password: {entered_password}");
 
     let returned_credentials: Option<User> = db
         .run(move |conn| {
@@ -42,7 +45,11 @@ async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<R
             let mut hasher = DefaultHasher::new();
 
             entered_password.hash(&mut hasher);
-            if hasher.finish().to_string().eq(returned_password) {
+            let hashed_password: String = hasher.finish().to_string();
+            // DEBUGGING
+            println!("hashed password: {hashed_password}");
+            println!("returned password: {returned_password}");
+            if hashed_password.eq(returned_password) {
                 Ok(Json(Response::new(
                     true,
                     Some(credentials.id.unwrap()),
