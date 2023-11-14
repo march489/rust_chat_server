@@ -8,15 +8,44 @@ use rocket::{Build, Rocket};
 
 pub mod message;
 mod post;
+mod room;
 #[cfg(test)]
 mod tests;
 
 use crate::db::Db;
+use crate::login::response::Response;
 use crate::message_handler::message::Message;
 use crate::message_handler::post::Post;
+use crate::message_handler::room::Room;
 use crate::schema::*;
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
+const LAST_INSERT_ROW_QUERY: &str = "SELECT last_insert_rowid()";
+const ROOM_ALREADY_EXISTS: &str = "A room with that name already exists";
+
+#[post("/room", data = "<room>")]
+async fn create_room(db: Db, room: Json<Room>) -> Result<Created<Json<Option<Response>>>> {
+    let new_room: Option<i32> = db
+        .run(move |conn| {
+            let room_value = room.clone();
+
+            diesel::insert_into(rooms::table)
+                .values(&*room_value)
+                .execute(conn)
+                .and_then(|_| {
+                    sql::<sql_types::Integer>(LAST_INSERT_ROW_QUERY).get_result::<i32>(conn)
+                })
+        })
+        .await
+        .ok();
+
+    let response: Response = match new_room {
+        Some(id) => Response::new(true, Some(id), None).unwrap(),
+        None => Response::new(false, None, Some(String::from(ROOM_ALREADY_EXISTS))).unwrap(),
+    };
+
+    Ok(Created::new("/").body(Json(Some(response))))
+}
 
 #[get("/all")]
 async fn load_messages(db: Db) -> Option<Json<Vec<Message>>> {
@@ -110,7 +139,15 @@ pub fn stage() -> AdHoc {
             .attach(AdHoc::on_ignite("Diesel Migrations", run_migrations))
             .mount(
                 "/diesel",
-                routes![list, create, read_one, delete_one, destroy, load_messages],
+                routes![
+                    list,
+                    create,
+                    read_one,
+                    delete_one,
+                    destroy,
+                    load_messages,
+                    create_room
+                ],
             )
     })
 }

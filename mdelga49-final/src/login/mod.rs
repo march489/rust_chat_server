@@ -67,7 +67,7 @@ async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<R
 }
 
 #[get("/")]
-async fn list_users(db: Db) -> Result<Json<Vec<Option<i32>>>> {
+async fn list_users_ids(db: Db) -> Result<Json<Vec<Option<i32>>>> {
     let ids: Vec<Option<i32>> = db
         .run(move |conn| {
             users::table
@@ -117,7 +117,7 @@ async fn destroy(db: Db) -> Result<()> {
 }
 
 #[post("/", data = "<user>")]
-async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<Response>>>> {
+async fn create_user(db: Db, user: Json<User>) -> Result<Created<Json<Option<Response>>>> {
     let mut new_user: Json<User> = user.clone();
 
     let mut hasher = DefaultHasher::new();
@@ -165,8 +165,8 @@ pub fn stage() -> AdHoc {
                 query_user_by_id,
                 destroy,
                 delete_user,
-                create,
-                list_users,
+                create_user,
+                list_users_ids,
                 authorize_user
             ],
         )

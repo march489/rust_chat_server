@@ -63,7 +63,7 @@ class CreateUser {
                         InitChatRooms();
                     } else {
                         errorMessageSpan.innerText = response.reason;
-                    }
+                    } te
                 })
             }
         })
