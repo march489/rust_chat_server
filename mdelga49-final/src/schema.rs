@@ -3,8 +3,8 @@
 diesel::table! {
     posts (id) {
         id -> Nullable<Integer>,
-        author -> Text,
-        thread -> Text,
+        user_id -> Integer,
+        room_id -> Integer,
         body -> Text,
         created_at -> Nullable<Timestamp>,
     }
@@ -32,6 +32,8 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(posts -> rooms (room_id));
+diesel::joinable!(posts -> users (user_id));
 diesel::joinable!(room_members -> rooms (room_id));
 diesel::joinable!(room_members -> users (user_id));
 

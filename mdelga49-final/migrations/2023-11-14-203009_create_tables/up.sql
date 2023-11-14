@@ -14,11 +14,14 @@ CREATE TABLE rooms (
 
 CREATE TABLE posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    author TEXT NOT NULL,
-    thread TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    room_id INTEGER NOT NULL,
     body TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT posts_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT posts_room_id_fk FOREIGN KEY (room_id) REFERENCES rooms(id)
 );
+
 
 CREATE TABLE room_members (
     room_id INTEGER NOT NULL,

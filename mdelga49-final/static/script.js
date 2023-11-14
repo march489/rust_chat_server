@@ -165,7 +165,10 @@ function loadInitialMessages() {
 
 // Let's go! Initialize the world.
 async function InitChatRooms() {
-    const previousMessages = await fetch("/diesel/all",
+    // need to test
+    let userId = localStorage.getItem("userId");
+    const uri = "/diesel/all_messages/" + String(userId);
+    const previousMessages = await fetch(uri,
         {
             method: "GET"
         }).then((response) => {

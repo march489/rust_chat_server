@@ -47,16 +47,28 @@ async fn create_room(db: Db, room: Json<Room>) -> Result<Created<Json<Option<Res
     Ok(Created::new("/").body(Json(Some(response))))
 }
 
-#[get("/all")]
-async fn load_messages(db: Db) -> Option<Json<Vec<Message>>> {
+#[get("/all_messages/<user_id>")]
+async fn load_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> {
     db.run(move |conn| {
         posts::table
-            .select((posts::thread, posts::author, posts::body))
+            .inner_join(rooms::table)
+            .inner_join(users::table)
+            .filter(users::id.eq(user_id))
+            .select((rooms::room_name, users::email, posts::body))
             .load::<Message>(conn)
     })
     .await
     .map(Json)
     .ok()
+
+    // db.run(move |conn| {
+    //     posts::table
+    //         .select((posts::room_id, posts::user_id, posts::body))
+    //         .load::<Message>(conn)
+    // })
+    // .await
+    // .map(Json)
+    // .ok()
 }
 
 #[post("/", data = "<post>")]

@@ -40,7 +40,7 @@ fn _run_test(base: &str, stage: AdHoc) {
             .unwrap();
 
         // println!("response json:\n{:?}", response);
-        assert_eq!(response.author, post.author);
+        assert_eq!(response.user_id, post.user_id);
         assert_eq!(response.thread, post.thread);
         assert_eq!(response.body, post.body);
     }
