@@ -1,4 +1,5 @@
 const createAccountForm = document.getElementById('createAccountForm');
+const createAccountButton = document.getElementById('create-account-button');
 
 class CreateUser {
     constructor(form, fields) {
@@ -8,7 +9,6 @@ class CreateUser {
     }
 
     async createNewUser() {
-        let result = false;
         const newUser = { email: this.enteredEmail, password: this.enteredPassword };
 
         let data = await fetch("/auth",
@@ -21,12 +21,6 @@ class CreateUser {
 
         const response = await data.json();
         return response;
-        // if (response.authorized) {
-        //     console.log("new user CREATED");
-        //     localStorage.setItem("userId", response.id);
-        //     result = true;
-        // }
-        // return result;
     }
 
     isValidEmail(email) {
@@ -52,10 +46,23 @@ class CreateUser {
             if (error == 0) {
                 // create new user
                 this.createNewUser().then((response) => {
+                    const errorMessageSpan = createAccountButton.parentElement.querySelector('.error-message');
+
                     if (response.authorized) {
-                        // TODO: FILL THIS IN TOMORROW 
-                        // BASED ON THE PARALLEL .THEN() CLAUSE
-                        // in validateOnSubmit()
+                        errorMessageSpan.innerText = "";
+                        const newUserModal = document.getElementById('new-user-modal');
+                        newUserModal.classList.add('close-modal');
+                        $('.overlay').hide();
+
+                        // save data
+                        localStorage.setItem("auth", 1);
+                        localStorage.setItem("time", Date.now());
+                        localStorage.setItem("userId", response.id);
+
+                        // load data
+                        InitChatRooms();
+                    } else {
+                        errorMessageSpan.innerText = response.reason;
                     }
                 })
             }

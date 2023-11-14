@@ -129,14 +129,10 @@ async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<Response
             diesel::insert_into(users::table)
                 .values(&*new_user)
                 .execute(conn)
-            //     .and_then(|_| {
-            //         sql::<sql_types::Integer>("SELECT last_insert_rowid()").get_result::<i32>(conn)
-            //     });
-            // result.ok()
         })
         .await;
 
-    match result {
+    let response = match result {
         Ok(_) => {
             let new_id_number: i32 = db
                 .run(move |conn| {
@@ -155,7 +151,9 @@ async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<Response
                 "The entered email address already has an account.",
             )),
         )))),
-    }
+    };
+
+    response
 }
 
 pub fn stage() -> AdHoc {
