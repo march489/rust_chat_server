@@ -12,6 +12,7 @@ let messageField = newMessageForm.querySelector("#message");
 let usernameField = newMessageForm.querySelector("#username");
 let roomNameField = newRoomForm.querySelector("#name");
 
+
 var STATE = {
     room: "lobby",
     rooms: [],
@@ -154,16 +155,16 @@ function loadPreviousMessages(previousMessages) {
 
 function loadInitialMessages() {
     addRoom("lobby");
-    // addRoom("rocket");
+    addRoom("rocket");
     changeRoom("lobby");
     addMessage("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!", true);
     writeMessageToDb("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!");
-    // addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
-    // writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
+    addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
+    writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
 }
 
 // Let's go! Initialize the world.
-async function InitGameRooms() {
+async function InitChatRooms() {
     const previousMessages = await fetch("/diesel/all",
         {
             method: "GET"
@@ -223,6 +224,9 @@ async function InitGameRooms() {
 const auth = new Auth();
 
 if (loginForm) {
-    const fields = ["login-email", "login-password"];
-    const validator = new Login(loginForm, fields);
+    const loginFields = ["login-email", "login-password"];
+    const validator = new Login(loginForm, loginFields);
+
+    const createUserFields = ["create-email", "create-password", "confirm-password"];
+    const newUserBuilder = new CreateUser(createAccountForm, createUserFields);
 }

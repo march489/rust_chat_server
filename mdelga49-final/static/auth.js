@@ -7,6 +7,10 @@ class Auth {
     }
 
     validateAuth(auth) {
+        logoutText.addEventListener('click', (e) => {
+            this.logout();
+        });
+
         console.log("validating auth");
         if (auth != 1) {
             console.log("no auth found");
@@ -15,11 +19,7 @@ class Auth {
             // TODO: include pulls from localStorage of userId
             // and pass that to InitGameRooms()
             console.log("validated");
-            InitGameRooms();
-
-            logoutText.addEventListener('click', (e) => {
-                this.logout();
-            });
+            InitChatRooms();
         }
     }
 

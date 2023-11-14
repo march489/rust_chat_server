@@ -20,15 +20,13 @@ mod test;
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 const NO_MATCH_ERR_MSG: &str = "Invalid username or password";
+const LAST_INSERT_ROW_QUERY: &str = "SELECT last_insert_rowid()";
 
 #[post("/shibboleth", data = "<credentials>")]
 async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<Response>>> {
     let creds: User = credentials.into_inner();
     let entered_email: String = creds.email.clone();
     let entered_password: String = creds.password.clone();
-
-    // DEBUGGING
-    println!("entered password: {entered_password}");
 
     let returned_credentials: Option<User> = db
         .run(move |conn| {
@@ -46,9 +44,6 @@ async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<R
 
             entered_password.hash(&mut hasher);
             let hashed_password: String = hasher.finish().to_string();
-            // DEBUGGING
-            println!("hashed password: {hashed_password}");
-            println!("returned password: {returned_password}");
             if hashed_password.eq(returned_password) {
                 Ok(Json(Response::new(
                     true,
@@ -122,26 +117,45 @@ async fn destroy(db: Db) -> Result<()> {
 }
 
 #[post("/", data = "<user>")]
-async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<i32>>>> {
+async fn create(db: Db, user: Json<User>) -> Result<Created<Json<Option<Response>>>> {
     let mut new_user: Json<User> = user.clone();
 
     let mut hasher = DefaultHasher::new();
     new_user.password.hash(&mut hasher);
     new_user.password = hasher.finish().to_string();
 
-    let new_user_id: Option<i32> = db
+    let result = db
         .run(move |conn| {
-            let result = diesel::insert_into(users::table)
+            diesel::insert_into(users::table)
                 .values(&*new_user)
                 .execute(conn)
-                .and_then(|_| {
-                    sql::<sql_types::Integer>("SELECT last_insert_rowid()").get_result::<i32>(conn)
-                });
-            result.ok()
+            //     .and_then(|_| {
+            //         sql::<sql_types::Integer>("SELECT last_insert_rowid()").get_result::<i32>(conn)
+            //     });
+            // result.ok()
         })
         .await;
 
-    Ok(Created::new("/").body(Json(new_user_id)))
+    match result {
+        Ok(_) => {
+            let new_id_number: i32 = db
+                .run(move |conn| {
+                    sql::<sql_types::Integer>(LAST_INSERT_ROW_QUERY)
+                        .get_result::<i32>(conn)
+                        .ok()
+                        .unwrap()
+                })
+                .await;
+            Ok(Created::new("/").body(Json(Response::new(true, Some(new_id_number), None))))
+        }
+        Err(_) => Ok(Created::new("/").body(Json(Response::new(
+            false,
+            None,
+            Some(String::from(
+                "The entered email address already has an account.",
+            )),
+        )))),
+    }
 }
 
 pub fn stage() -> AdHoc {

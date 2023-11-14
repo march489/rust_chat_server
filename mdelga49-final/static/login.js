@@ -1,13 +1,24 @@
 const loginButton = document.getElementById('login-button');
 const loginForm = document.getElementById('loginForm');
 const overlay = document.getElementById('overlay');
+const createAccountLink = document.getElementById('create-account-link')
 const emailRegex = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
 
 class Login {
     constructor(form, fields) {
         this.form = form;
         this.fields = fields;
+        this.connectNewAccountModal();
         this.validateOnSubmit();
+    }
+
+    connectNewAccountModal() {
+        createAccountLink.addEventListener('click', (e) => {
+            $('#login-modal').hide();
+            const newUserModal = document.getElementById("new-user-modal");
+            newUserModal.classList.remove("close-modal");
+        })
     }
 
     async getCredentialsAuthorized() {
@@ -62,7 +73,7 @@ class Login {
                         localStorage.setItem("time", Date.now());
 
                         // load data
-                        InitGameRooms();
+                        InitChatRooms();
                     } else {
                         const errorMessageSpan = loginButton.parentElement.querySelector('.error-message');
                         errorMessageSpan.innerText = "Invalid username or password";
