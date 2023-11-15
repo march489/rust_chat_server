@@ -9,14 +9,16 @@ pub struct User {
     pub id: Option<i32>,
     pub email: String,
     pub password: String,
+    pub display_name: String,
 }
 
 impl User {
-    pub fn new(email: &String, password: &String) -> User {
+    pub fn new(email: &String, password: &String, name: &String) -> User {
         User {
             id: None,
             email: email.clone(),
             password: password.clone(),
+            display_name: name.clone(),
         }
     }
 }

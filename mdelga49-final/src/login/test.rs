@@ -31,6 +31,7 @@ fn post_creates_users() {
         let new_user: User = User::new(
             &format!("mdelga49{}@depaul.edu", i),
             &format!("password{}!", i),
+            &"Marcello".to_string(),
         );
         let new_user_id: i32 = client
             .post(BASE)
@@ -64,7 +65,8 @@ fn get_users_by_email() {
     for i in 1..=N {
         let email: String = format!("mdelga59{}@depaul.edu", i);
         let pw: String = format!("password{}!", i);
-        let new_user: User = User::new(&email, &pw);
+        let name: String = String::from("Marcello");
+        let new_user: User = User::new(&email, &pw, &name);
 
         let new_user_id: i32 = client
             .post(BASE)
@@ -92,7 +94,11 @@ fn created_users_are_authorized() {
     // clean the client before testing.
     assert_eq!(client.delete(BASE).dispatch().status(), Status::Ok);
 
-    let new_user: User = User::new(&"mdelgado125@cps.edu".to_string(), &"password1".to_string());
+    let new_user: User = User::new(
+        &"mdelgado125@cps.edu".to_string(),
+        &"password1".to_string(),
+        &"Marcello".to_string(),
+    );
 
     // create the new user
     let new_user_id: i32 = client
@@ -123,8 +129,11 @@ fn incorrect_passwords_are_rejected() {
     // clean the client before testing.
     assert_eq!(client.delete(BASE).dispatch().status(), Status::Ok);
 
-    let mut new_user: User =
-        User::new(&"mdelgado125@cps.edu".to_string(), &"password1".to_string());
+    let mut new_user: User = User::new(
+        &"mdelgado125@cps.edu".to_string(),
+        &"password1".to_string(),
+        &"Marcello".to_string(),
+    );
 
     // create the new user
     let _: i32 = client
@@ -159,7 +168,11 @@ fn non_users_are_not_authorized() {
     // clean the client before testing.
     assert_eq!(client.delete(BASE).dispatch().status(), Status::Ok);
 
-    let new_user: User = User::new(&"mdelgado125@cps.edu".to_string(), &"password1".to_string());
+    let new_user: User = User::new(
+        &"mdelgado125@cps.edu".to_string(),
+        &"password1".to_string(),
+        &"Marcello".to_string(),
+    );
 
     // test if we can get in with credentials that haven't been added to the db
     let response: Option<Response> = client

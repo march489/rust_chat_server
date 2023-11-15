@@ -47,14 +47,13 @@ async fn create_room(db: Db, room: Json<Room>) -> Result<Created<Json<Option<Res
     Ok(Created::new("/").body(Json(Some(response))))
 }
 
-#[get("/all_messages/<user_id>")]
-async fn load_user_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> {
+#[get("/all_messages")]
+async fn load_user_messages(db: Db) -> Option<Json<Vec<Message>>> {
     db.run(move |conn| {
         posts::table
             .inner_join(rooms::table)
             .inner_join(users::table)
-            .filter(users::id.eq(user_id))
-            .select((rooms::room_name, users::email, posts::body))
+            .select((rooms::room_name, users::display_name, posts::body))
             .load::<Message>(conn)
     })
     .await
@@ -63,8 +62,8 @@ async fn load_user_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> 
 }
 
 #[get("/room/name/<room_name>")]
-async fn get_room_id_by_name(db: Db, room_name: String) -> Option<Json<Response>> {
-    let name = room_name.clone();
+async fn get_room_id_by_name(db: Db, room_name: &str) -> Option<Json<Response>> {
+    let name: String = String::from(room_name);
     let result: Option<Room> = db
         .run(move |conn| rooms::table.filter(rooms::room_name.eq(name)).first(conn))
         .await

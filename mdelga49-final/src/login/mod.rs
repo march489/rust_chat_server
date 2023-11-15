@@ -48,7 +48,7 @@ async fn authorize_user(db: Db, credentials: Json<User>) -> Result<Json<Option<R
                 Ok(Json(Response::new(
                     true,
                     Some(credentials.id.unwrap()),
-                    None,
+                    Some(credentials.display_name),
                 )))
             } else {
                 Ok(Json(Response::new(
@@ -89,8 +89,9 @@ async fn query_user_by_id(db: Db, id: i32) -> Option<Json<User>> {
 }
 
 #[get("/email/<email>")]
-async fn query_user_by_email(db: Db, email: String) -> Option<Json<User>> {
-    db.run(move |conn| users::table.filter(users::email.eq(email)).first(conn))
+async fn query_user_by_email(db: Db, email: &str) -> Option<Json<User>> {
+    let address = String::from(email);
+    db.run(move |conn| users::table.filter(users::email.eq(address)).first(conn))
         .await
         .map(Json)
         .ok()

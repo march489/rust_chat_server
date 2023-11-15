@@ -23,7 +23,7 @@ class Login {
 
     async getCredentialsAuthorized() {
         let result = false;
-        const credentials = { email: this.enteredEmail, password: this.enteredPassword };
+        const credentials = { email: this.enteredEmail, password: this.enteredPassword, display_name: "default" };
 
         let data = await fetch("/auth/shibboleth",
             {
@@ -39,6 +39,7 @@ class Login {
             console.log("We've been AUTHORIZED");
             result = true;
             localStorage.setItem("userId", response.id);
+            localStorage.setItem("displayName", response.reason);
         }
 
         return result;

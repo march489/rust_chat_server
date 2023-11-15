@@ -9,7 +9,7 @@ class CreateUser {
     }
 
     async createNewUser() {
-        const newUser = { email: this.enteredEmail, password: this.enteredPassword };
+        const newUser = { email: this.enteredEmail, password: this.enteredPassword, display_name: this.enteredDisplayName };
 
         let data = await fetch("/auth",
             {
@@ -29,6 +29,10 @@ class CreateUser {
 
     isValidPassword(pw) {
         return pw.length >= 8;
+    }
+
+    isValidDisplayName(name) {
+        return name.length > 0;
     }
 
     async validateOnCreate() {
@@ -58,6 +62,7 @@ class CreateUser {
                         localStorage.setItem("auth", 1);
                         localStorage.setItem("time", Date.now());
                         localStorage.setItem("userId", response.id);
+                        localStorage.setItem("displayName", this.enteredDisplayName);
 
                         // load data
                         InitChatRooms();
@@ -105,6 +110,19 @@ class CreateUser {
                 } else {
                     this.setStatus(field, null, "success");
                     this.enteredPassword = field.value;
+                    return true;
+                }
+            } else if (field.id == "display-name") {
+                if (!this.isValidDisplayName(field.value)) {
+                    this.setStatus(
+                        field,
+                        `${field.previousElementSibling.innerText} cannot be blank`,
+                        "error"
+                    );
+                    return false;
+                } else {
+                    this.setStatus(field, null, "success");
+                    this.enteredDisplayName = field.value;
                     return true;
                 }
             } else if (field.id == "create-email") {

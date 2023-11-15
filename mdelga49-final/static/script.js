@@ -204,15 +204,20 @@ async function loadInitialMessages() {
 
     // populate initial messages
     changeRoom("Lobby");
-    addMessage("Lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!", true);
+    addMessage("Lobby", "Rocket", "Hey! Welcome to your new chat room!", true);
     addMessage("Rocket", "Rocket", "This is another room. Neat, huh?", true);
 }
 
 // Let's go! Initialize the world.
 async function InitChatRooms() {
     // need to test
-    let userId = localStorage.getItem("userId");
-    const uri = "/diesel/all_messages/" + String(userId);
+    const displayName = localStorage.getItem("displayName");
+
+    // set default display name
+    const displayNameBox = newMessageForm.querySelector('#username');
+    displayNameBox.placeholder = displayName;
+
+    const uri = "/diesel/all_messages";
     const previousMessages = await fetch(uri,
         {
             method: "GET"
@@ -234,7 +239,7 @@ async function InitChatRooms() {
         const roomId = STATE.rooms[room];
         const userId = parseInt(localStorage.getItem("userId"));
         const message = messageField.value;
-        const username = usernameField.value || "guest";
+        const username = usernameField.value || localStorage.getItem("displayName");
         if (!message) return;
 
         if (STATE.connected) {
@@ -276,8 +281,8 @@ const auth = new Auth();
 
 if (loginForm) {
     const loginFields = ["login-email", "login-password"];
-    const validator = new Login(loginForm, loginFields);
+    new Login(loginForm, loginFields);
 
-    const createUserFields = ["create-email", "create-password", "confirm-password"];
-    const newUserBuilder = new CreateUser(createAccountForm, createUserFields);
+    const createUserFields = ["create-email", "create-password", "confirm-password", "display-name"];
+    new CreateUser(createAccountForm, createUserFields);
 }
