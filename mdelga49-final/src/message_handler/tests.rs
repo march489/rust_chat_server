@@ -17,7 +17,8 @@ fn _run_test(base: &str, stage: AdHoc) {
     );
 
     for i in 1..=N {
-        let mut post: Post = Post::new("MD", "Lobby", format!("This is post {i}").as_str());
+        let mut post: Post =
+            Post::new(i as i32, 2 * i as i32, format!("This is post {i}").as_str());
 
         let response = client
             .post(base)
@@ -41,7 +42,7 @@ fn _run_test(base: &str, stage: AdHoc) {
 
         // println!("response json:\n{:?}", response);
         assert_eq!(response.user_id, post.user_id);
-        assert_eq!(response.thread, post.thread);
+        assert_eq!(response.room_id, post.room_id);
         assert_eq!(response.body, post.body);
     }
 

@@ -14,10 +14,13 @@ let roomNameField = newRoomForm.querySelector("#name");
 
 
 var STATE = {
-    room: "lobby",
+    room: "Lobby",
+    roomId: null,
     rooms: [],
     connected: false,
+    ready: false
 }
+
 
 // Generate a color from a "hash" of a string. Thanks, internet.
 function hashColor(str) {
@@ -30,14 +33,55 @@ function hashColor(str) {
     return `hsl(${hash % 360}, 100%, 70%)`;
 }
 
+async function findRoomByName(name) {
+    const URI = "/diesel/room/name/" + String(name);
+    let response = await fetch(URI,
+        {
+            method: "GET"
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(`Room (${name}) got response [${data.result}]`);
+            return data;
+        })
+
+    return response;
+}
+
+async function createNewRoom(name) {
+    var id = null;
+    const response = await findRoomByName(name);
+    if (!response.authorized) {
+        const URI = "/diesel/room";
+        const msg = { room_name: name };
+        const creation = await fetch(URI,
+            {
+                method: "POST",
+                body: JSON.stringify(msg)
+            })
+            .then((response) => response.json())
+            .then((data) => { return data; })
+
+        id = creation.id;
+    } else {
+        id = response.id;
+    }
+    console.log(`Room ${name} has id ${id}`);
+}
+
+
 // Add a new room `name` and change to it. Returns `true` if the room didn't
 // already exist and false otherwise.
-function addRoom(name) {
+async function addRoom(name) {
     if (STATE[name]) {
+        // it's already been added
         changeRoom(name);
         return false;
     }
 
+    createNewRoom(name);
+
+    // add it to the room list on the sidebar
     let node = roomTemplate.content.cloneNode(true);
     let room = node.querySelector(".room");
     room.addEventListener("click", () => changeRoom(name));
@@ -45,7 +89,8 @@ function addRoom(name) {
     room.dataset.name = name;
     roomListDiv.appendChild(node);
 
-    STATE.rooms.push(name);
+    // write to the database
+    STATE.rooms.push(name); // REWRITE
     STATE[name] = [];
     changeRoom(name);
     return true;
@@ -145,7 +190,7 @@ function loadPreviousMessages(previousMessages) {
             return arr.indexOf(element) === index;
         }).forEach((room) => addRoom(room));
 
-    changeRoom("lobby");
+    changeRoom("Lobby");
 
     previousMessages.forEach((obj) => {
         let { room, username, message } = obj;
@@ -153,14 +198,14 @@ function loadPreviousMessages(previousMessages) {
     })
 }
 
-function loadInitialMessages() {
-    addRoom("lobby");
-    addRoom("rocket");
-    changeRoom("lobby");
-    addMessage("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!", true);
-    writeMessageToDb("lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!");
-    addMessage("rocket", "Rocket", "This is another room. Neat, huh?", true);
-    writeMessageToDb("rocket", "Rocket", "This is another room. Neat, huh?");
+async function loadInitialMessages() {
+    addRoom("Lobby");
+    addRoom("Rocket");
+
+    // populate initial messages
+    changeRoom("Lobby");
+    addMessage("Lobby", "Rocket", "Hey! Welcome to your first Dungeons & Dragons game room!", true);
+    addMessage("Rocket", "Rocket", "This is another room. Neat, huh?", true);
 }
 
 // Let's go! Initialize the world.
@@ -177,29 +222,28 @@ async function InitChatRooms() {
             return result;
         });
 
-    if (previousMessages.length == 0) {
-        // Initialize some rooms.
-        loadInitialMessages();
-    } else {
-        loadPreviousMessages(previousMessages);
-    }
+    console.log(previousMessages);
+    await loadInitialMessages();
+    loadPreviousMessages(previousMessages);
 
     // Set up the form handler.
     newMessageForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
         const room = STATE.room;
+        const roomId = STATE.roomId;
+        const userId = localStorage.getItem("userId");
         const message = messageField.value;
-        const username = usernameField.value || "guest";
-        if (!message || !username) return;
+        // const username = usernameField.value || "guest";
+        if (!message) return;
 
         if (STATE.connected) {
             // Write to the DB
-            writeMessageToDb(room, username, message);
+            writeMessageToDb(roomId, userId, message);
 
-            fetch("/message", {
+            fetch("/diesel", {
                 method: "POST",
-                body: new URLSearchParams({ room, username, message }),
+                body: new URLSearchParams({ userId, roomId, message }),
             }).then((response) => {
                 if (response.ok) messageField.value = "";
             });
@@ -213,8 +257,12 @@ async function InitChatRooms() {
         const room = roomNameField.value;
         if (!room) return;
 
+        // if the room already exists, do nothing
+        if (STATE[room]) return;
+
         roomNameField.value = "";
         if (!addRoom(room)) return;
+
 
         addMessage(room, "Rocket", `Look, your own "${room}" room! Nice.`, true);
     })

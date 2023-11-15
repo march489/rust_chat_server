@@ -11,3 +11,5 @@ pub struct Message {
     pub username: String,
     pub message: String,
 }
+
+// The problem is that the Message struct doesn't actually give us the info we need

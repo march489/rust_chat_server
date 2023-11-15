@@ -48,7 +48,7 @@ async fn create_room(db: Db, room: Json<Room>) -> Result<Created<Json<Option<Res
 }
 
 #[get("/all_messages/<user_id>")]
-async fn load_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> {
+async fn load_user_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> {
     db.run(move |conn| {
         posts::table
             .inner_join(rooms::table)
@@ -84,8 +84,28 @@ async fn get_room_id_by_name(db: Db, room_name: String) -> Option<Json<Response>
     Some(Json(response))
 }
 
+#[get("/room/id/<id>")]
+async fn get_messages_by_room_id(db: Db, id: i32) -> Option<Json<Response>> {
+    let result: Option<Room> = db
+        .run(move |conn| rooms::table.filter(rooms::id.eq(id)).first(conn))
+        .await
+        .ok();
+
+    let response: Response = match result {
+        Some(room) => Response::new(true, Some(room.id.unwrap()), None).unwrap(),
+        None => Response::new(
+            false,
+            None,
+            Some(format!("Room with id {} does not exist.", id)),
+        )
+        .unwrap(),
+    };
+
+    Some(Json(response))
+}
+
 #[post("/", data = "<post>")]
-async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
+async fn create_post(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
     let post_value = post.clone();
 
     let inserted: Option<i32> = db
@@ -104,20 +124,6 @@ async fn create(db: Db, mut post: Json<Post>) -> Result<Created<Json<Post>>> {
     Ok(Created::new("/").body(post))
 }
 
-#[get("/")]
-async fn list(db: Db) -> Result<Json<Vec<Option<i32>>>> {
-    let ids: Vec<Option<i32>> = db
-        .run(move |conn| posts::table.select(posts::id).load(conn))
-        .await?;
-
-    Ok(Json(ids))
-}
-
-#[get("/room/id/<id>")]
-async fn get_messages_by_room_id(db: Db, id: i32) -> Result<Json<Vec<Post>>> {
-    Ok(Json(vec![Post::new(3, 5, "yes")]))
-}
-
 #[get("/<id>")]
 async fn get_post_by_id(db: Db, id: i32) -> Option<Json<Post>> {
     println!("read_one(db, {id})");
@@ -128,7 +134,7 @@ async fn get_post_by_id(db: Db, id: i32) -> Option<Json<Post>> {
 }
 
 #[delete("/<id>")]
-async fn delete_one(db: Db, id: i32) -> Result<Option<()>> {
+async fn delete_post(db: Db, id: i32) -> Result<Option<()>> {
     let affected: usize = db
         .run(move |conn| {
             diesel::delete(posts::table)
@@ -141,7 +147,7 @@ async fn delete_one(db: Db, id: i32) -> Result<Option<()>> {
 }
 
 #[delete("/")]
-async fn destroy(db: Db) -> Result<()> {
+async fn destroy_posts(db: Db) -> Result<()> {
     db.run(move |conn| diesel::delete(posts::table).execute(conn))
         .await?;
     Ok(())
@@ -170,12 +176,11 @@ pub fn stage() -> AdHoc {
             .mount(
                 "/diesel",
                 routes![
-                    list,
-                    create,
+                    create_post,
                     get_post_by_id,
-                    delete_one,
-                    destroy,
-                    load_messages,
+                    delete_post,
+                    destroy_posts,
+                    load_user_messages,
                     create_room,
                     get_room_id_by_name,
                     get_messages_by_room_id
