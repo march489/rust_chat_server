@@ -15,8 +15,7 @@ let roomNameField = newRoomForm.querySelector("#name");
 
 var STATE = {
     room: "Lobby",
-    roomId: null,
-    rooms: [],
+    rooms: {},
     connected: false,
     ready: false
 }
@@ -67,6 +66,7 @@ async function createNewRoom(name) {
         id = response.id;
     }
     console.log(`Room ${name} has id ${id}`);
+    STATE.rooms[name] = id;
 }
 
 
@@ -90,7 +90,7 @@ async function addRoom(name) {
     roomListDiv.appendChild(node);
 
     // write to the database
-    STATE.rooms.push(name); // REWRITE
+    // STATE.rooms.push(name); // REWRITE
     STATE[name] = [];
     changeRoom(name);
     return true;
@@ -131,9 +131,9 @@ function addMessage(room, username, message, push = false) {
     }
 }
 
-function writeMessageToDb(room, username, message) {
+function writeMessageToDb(room, user, message) {
     // write to the DB
-    const msg = { author: username, thread: room, body: message };
+    const msg = { user_id: user, room_id: room, body: message };
     fetch("/diesel", {
         method: "POST",
         body: JSON.stringify(msg)
@@ -231,19 +231,19 @@ async function InitChatRooms() {
         e.preventDefault();
 
         const room = STATE.room;
-        const roomId = STATE.roomId;
-        const userId = localStorage.getItem("userId");
+        const roomId = STATE.rooms[room];
+        const userId = parseInt(localStorage.getItem("userId"));
         const message = messageField.value;
-        // const username = usernameField.value || "guest";
+        const username = usernameField.value || "guest";
         if (!message) return;
 
         if (STATE.connected) {
             // Write to the DB
             writeMessageToDb(roomId, userId, message);
 
-            fetch("/diesel", {
+            fetch("/message", {
                 method: "POST",
-                body: new URLSearchParams({ userId, roomId, message }),
+                body: new URLSearchParams({ room, username, message }),
             }).then((response) => {
                 if (response.ok) messageField.value = "";
             });
