@@ -60,15 +60,28 @@ async fn load_messages(db: Db, user_id: i32) -> Option<Json<Vec<Message>>> {
     .await
     .map(Json)
     .ok()
+}
 
-    // db.run(move |conn| {
-    //     posts::table
-    //         .select((posts::room_id, posts::user_id, posts::body))
-    //         .load::<Message>(conn)
-    // })
-    // .await
-    // .map(Json)
-    // .ok()
+#[get("/room/name/<room_name>")]
+async fn get_room_id_by_name(db: Db, room_name: String) -> Option<Json<Response>> {
+    let name = room_name.clone();
+    let result: Option<Room> = db
+        .run(move |conn| rooms::table.filter(rooms::room_name.eq(name)).first(conn))
+        .await
+        // .map(Json)
+        .ok();
+
+    let response: Response = match result {
+        Some(room) => Response::new(true, Some(room.id.unwrap()), None).unwrap(),
+        None => Response::new(
+            false,
+            None,
+            Some(format!("Room {} does not exist.", &room_name)),
+        )
+        .unwrap(),
+    };
+
+    Some(Json(response))
 }
 
 #[post("/", data = "<post>")]
@@ -100,8 +113,13 @@ async fn list(db: Db) -> Result<Json<Vec<Option<i32>>>> {
     Ok(Json(ids))
 }
 
+#[get("/room/id/<id>")]
+async fn get_messages_by_room_id(db: Db, id: i32) -> Result<Json<Vec<Post>>> {
+    Ok(Json(vec![Post::new(3, 5, "yes")]))
+}
+
 #[get("/<id>")]
-async fn read_one(db: Db, id: i32) -> Option<Json<Post>> {
+async fn get_post_by_id(db: Db, id: i32) -> Option<Json<Post>> {
     println!("read_one(db, {id})");
     db.run(move |conn| posts::table.filter(posts::id.eq(id)).first(conn))
         .await
@@ -154,11 +172,13 @@ pub fn stage() -> AdHoc {
                 routes![
                     list,
                     create,
-                    read_one,
+                    get_post_by_id,
                     delete_one,
                     destroy,
                     load_messages,
-                    create_room
+                    create_room,
+                    get_room_id_by_name,
+                    get_messages_by_room_id
                 ],
             )
     })
